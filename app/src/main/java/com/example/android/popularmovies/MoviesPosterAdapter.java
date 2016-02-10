@@ -18,7 +18,7 @@ public class MoviesPosterAdapter extends ArrayAdapter<Movie> {
     private Context mContext;
 
     // references to our movie objects
-    public ArrayList<Movie> moviesData;
+    private ArrayList<Movie> moviesData;
 
     //Constructor
     public MoviesPosterAdapter(Context c,ArrayList<Movie> moviesData) {

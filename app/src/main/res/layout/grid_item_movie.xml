@@ -8,8 +8,9 @@
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_gravity="left"
+        android:layout_gravity="center"
         android:id="@+id/grid_view_movie_poster"
+        android:adjustViewBounds="true"
         />
 
 </LinearLayout>

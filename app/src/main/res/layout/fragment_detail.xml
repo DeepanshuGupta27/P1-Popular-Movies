@@ -40,7 +40,9 @@
             android:layout_height="match_parent"
             android:layout_gravity="left"
             android:id="@+id/movie_poster"
-            android:layout_weight="0.5"/>
+            android:layout_weight="0.5"
+            android:adjustViewBounds="true"
+            />
 
         <LinearLayout
             android:orientation="vertical"
