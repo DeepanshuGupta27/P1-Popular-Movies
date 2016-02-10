@@ -83,5 +83,5 @@
         android:id="@+id/plot_synopsis"
         android:layout_gravity="center_horizontal"
         android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:layout_weight="0.2" />
+        android:layout_weight="0.4" />
 </LinearLayout>

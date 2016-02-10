@@ -18,7 +18,7 @@ public class MoviesPosterAdapter extends ArrayAdapter<Movie> {
     private Context mContext;
 
     // references to our movie objects
-    private ArrayList<Movie> moviesData;
+    public ArrayList<Movie> moviesData;
 
     //Constructor
     public MoviesPosterAdapter(Context c,ArrayList<Movie> moviesData) {
@@ -46,6 +46,11 @@ public class MoviesPosterAdapter extends ArrayAdapter<Movie> {
     {
         this.moviesData = moviesData;
         notifyDataSetChanged();
+    }
+
+    public ArrayList<Movie> getMoviesData()
+    {
+        return this.moviesData;
     }
 
     // create a new ImageView for each item referenced by the Adapter

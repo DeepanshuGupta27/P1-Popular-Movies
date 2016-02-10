@@ -38,12 +38,31 @@ public class MainActivityFragment extends Fragment {
     private MoviesPosterAdapter moviesAdapter = null;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View rootView =  inflater.inflate(R.layout.fragment_main, container, false);
+    public void onCreate(Bundle savedInstanceState)
+    {
+        super.onCreate(savedInstanceState);
 
         //Adapter that will bind the data coming from the moviedb with movie poster grid view
         moviesAdapter = new MoviesPosterAdapter(getActivity(),new ArrayList<Movie>());
+
+        if(savedInstanceState==null || !savedInstanceState.containsKey("movies")) {
+            showMoviePoster();
+        }
+        else{
+            moviesAdapter.moviesData = savedInstanceState.getParcelableArrayList("movies");
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelableArrayList("movies", moviesAdapter.getMoviesData());
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View rootView =  inflater.inflate(R.layout.fragment_main, container, false);
 
         //movie poster grid view
         GridView gridview = (GridView) rootView.findViewById(R.id.gridview);
@@ -77,8 +96,8 @@ public class MainActivityFragment extends Fragment {
         protected void onPostExecute(ArrayList<Movie> movieDetails) {
 
             if (movieDetails != null) {
+                //this will set moviesData ArrayList and will notify grid view for the data change
                 moviesAdapter.setMoviesData(movieDetails);
-                Log.v("FetchPopularMovies","Data set to notify ");
             }
 
         }
@@ -152,7 +171,7 @@ public class MainActivityFragment extends Fragment {
                         .build();
 
                 URL url = new URL(buildUri.toString());
-                Log.v(LOG_TAG, "Build URL : " + url);
+                //Log.v(LOG_TAG, "Build URL : " + url);
 
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
@@ -203,7 +222,7 @@ public class MainActivityFragment extends Fragment {
                     }
                 }
             }
-            Log.v(LOG_TAG, "Result returned");
+            //Log.v(LOG_TAG, "Result returned");
             return moviesData;
         }
     }
