@@ -61,13 +61,13 @@ public class MainActivityFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
+
         super.onCreate(savedInstanceState);
 
         //Adapter that will bind the data coming from the moviedb with movie poster grid view
         moviesAdapter = new MoviesPosterAdapter(getActivity(),new ArrayList<Movie>());
-
+        //Log.v("Main Activity Fragment", "On onCreate");
         if(savedInstanceState==null || !savedInstanceState.containsKey("movies")) {
-            showMoviePoster();
         }
         else{
             moviesAdapter.moviesData = savedInstanceState.getParcelableArrayList("movies");
@@ -76,6 +76,7 @@ public class MainActivityFragment extends Fragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
+        //Log.v("Main Activity Frgament","On Bundle Save");
         outState.putParcelableArrayList("movies", moviesAdapter.getMoviesData());
         super.onSaveInstanceState(outState);
     }
@@ -85,6 +86,7 @@ public class MainActivityFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView =  inflater.inflate(R.layout.fragment_main, container, false);
 
+        //Log.v("Main Activity Fragment", "On onCreateView");
         //movie poster grid view
         GridView gridview = (GridView) rootView.findViewById(R.id.gridview);
         gridview.setAdapter(moviesAdapter);
@@ -196,7 +198,7 @@ public class MainActivityFragment extends Fragment {
                         .build();
 
                 URL url = new URL(buildUri.toString());
-                //Log.v(LOG_TAG, "Build URL : " + url);
+                Log.v(LOG_TAG, "Build URL : " + url);
 
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
@@ -256,20 +258,61 @@ public class MainActivityFragment extends Fragment {
     public void onStart()
     {
         super.onStart();
-        showMoviePoster();
+        SharedPreferences sortCriteriaPreference = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String sort_criteria = sortCriteriaPreference.getString(getString(R.string.pref_sort_criteria_key), getString(R.string.pref_sort_critera_defaultvalue));
+        //Log.v("Global","Global "+Global.sortCriteria+" "+sort_criteria);
+        if(Global.sortCriteria.equals("") || !Global.sortCriteria.equals(sort_criteria)) {
+            showMoviePoster(sort_criteria);
+            Global.sortCriteria = sort_criteria;
+        }
+        // showMoviePoster(sort_criteria);
     }
 
+//    @Override
+//    public void onStop()
+//    {
+//        super.onStop();
+//        Log.v("Main Activity Fragement", "On stop");
+//    }
+//
+//    @Override
+//    public void onPause()
+//    {
+//        super.onPause();
+//        Log.v("Main Activity Fragement", "On onPause");
+//    }
+//
+//    @Override
+//    public void onDestroy()
+//    {
+//        super.onDestroy();
+//        Log.v("Main Activity Fragement", "On onDestroy");
+//    }
+//
+//    @Override
+//    public void onResume()
+//    {
+//        super.onResume();
+//        Log.v("Main Activity Fragement", "On onResume");
+//    }
+//
+//    @Override
+//    public void onDestroyView()
+//    {
+//        super.onDestroyView();
+//        Log.v("Main Activity Fragment", "On onDestroyView");
+//    }
+
+
+
     //Based on share preference this code will start main activity with require data
-    private void showMoviePoster()
+    private void showMoviePoster(String sort_criteria)
     {
         String url = "";
-        String sort_criteria = "";
         String poster_path,release_date,plot_synopsis,title,vote_avg;
         int movie_id;
         ArrayList<Movie> moviesData = new ArrayList<Movie>();
 
-        SharedPreferences sortCriteriaPreference = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        sort_criteria = sortCriteriaPreference.getString(getString(R.string.pref_sort_criteria_key),getString(R.string.pref_sort_critera_defaultvalue));
         if(sort_criteria.equals(getString(R.string.pref_sort_critera_defaultvalue)))
             new FetchPopularMovies().execute(sort_criteria);
         else if(sort_criteria.equals(getString(R.string.pref_sort_critera_highestrated)))

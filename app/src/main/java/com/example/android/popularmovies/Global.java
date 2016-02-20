@@ -15,6 +15,7 @@ import java.net.URL;
  */
 public class Global {
     public final static String api_key = "";
+    public static String sortCriteria =  "";
 
     public final static String getJsonData(String... params)
     {
@@ -41,7 +42,6 @@ public class Global {
 
             URL url = new URL(buildUri.toString());
             //Log.v(LOG_TAG, "Build URL : " + url);
-
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");
             urlConnection.connect();
