@@ -2,6 +2,7 @@ package com.example.android.popularmovies;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -14,6 +15,8 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
+
+import com.example.android.popularmovies.data.MovieContract;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -36,6 +39,24 @@ public class MainActivityFragment extends Fragment {
     }
 
     private MoviesPosterAdapter moviesAdapter = null;
+
+    private static final String[] MOVIE_COLUMNS = {
+            MovieContract.MovieEntry.COLUMN_TITLE,
+            MovieContract.MovieEntry.COLUMN_RELEASE_DATE,
+            MovieContract.MovieEntry.COLUMN_MOVIE_POSTER_URL,
+            MovieContract.MovieEntry.COLUMN_VOTE_AVG,
+            MovieContract.MovieEntry.COLUMN_PLOT_SYNOPSIS,
+            MovieContract.MovieEntry.COLUMN_MOVIE_ID
+    };
+
+    // These indices are tied to FORECAST_COLUMNS.  If FORECAST_COLUMNS changes, these
+    // must change.
+    private static final int COL_TITLE = 0;
+    private static final int COL_RELEASE_DATE = 1;
+    private static final int COL_MOVIE_POSTER_URL = 2;
+    private static final int COL_VOTE_AVG = 3;
+    private static final int COL_PLOT_SYNOPSIS = 4;
+    private static final int COL_MOVIE_ID = 5;
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -79,6 +100,7 @@ public class MainActivityFragment extends Fragment {
                 intent.putExtra("plot_synopsis", movie.plot_synopsis);
                 intent.putExtra("release_date", movie.releaseDate);
                 intent.putExtra("vote_average", movie.vote_average);
+                intent.putExtra("movie_id",movie.movie_id);
                 startActivity(intent);
             }
         });
@@ -120,10 +142,12 @@ public class MainActivityFragment extends Fragment {
             final String TMDB_RELEASE_DATE = "release_date";
             final String TMDB_TITLE = "title";
             final String TMDB_VOTE_AVG = "vote_average";
+            final String TMDB_MOVIE_ID = "id";
 
             JSONObject movieJson = new JSONObject(movieJsonStr);
             JSONArray movieArray = movieJson.getJSONArray(TMDB_RESULT);
             String poster_path,release_date,plot_synopsis,title,vote_avg;
+            int movie_id;
             ArrayList<Movie> moviesData = new ArrayList<Movie>();
 
 
@@ -136,7 +160,8 @@ public class MainActivityFragment extends Fragment {
                 plot_synopsis = movie.getString(TMDB_PLOT_SYNOPSIS);
                 title = movie.getString(TMDB_TITLE);
                 vote_avg = String.valueOf(movie.getDouble(TMDB_VOTE_AVG))+"/10";
-                moviesData.add(new Movie(title,release_date,poster_path,vote_avg,plot_synopsis));
+                movie_id = movie.getInt(TMDB_MOVIE_ID);
+                moviesData.add(new Movie(title,release_date,poster_path,vote_avg,plot_synopsis,movie_id));
 
             }
 
@@ -157,7 +182,7 @@ public class MainActivityFragment extends Fragment {
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
             String movieJSONStr = null;
-            String apikey_value = "";
+            String apikey_value = Global.api_key;
 
             final String BASE_URL = "https://api.themoviedb.org/3/discover/movie?";
             final String APIKEY_PARAM = "api_key";
@@ -239,11 +264,39 @@ public class MainActivityFragment extends Fragment {
     {
         String url = "";
         String sort_criteria = "";
+        String poster_path,release_date,plot_synopsis,title,vote_avg;
+        int movie_id;
+        ArrayList<Movie> moviesData = new ArrayList<Movie>();
+
         SharedPreferences sortCriteriaPreference = PreferenceManager.getDefaultSharedPreferences(getActivity());
         sort_criteria = sortCriteriaPreference.getString(getString(R.string.pref_sort_criteria_key),getString(R.string.pref_sort_critera_defaultvalue));
         if(sort_criteria.equals(getString(R.string.pref_sort_critera_defaultvalue)))
             new FetchPopularMovies().execute(sort_criteria);
-        else
+        else if(sort_criteria.equals(getString(R.string.pref_sort_critera_highestrated)))
             new FetchPopularMovies().execute(sort_criteria);
+        else if(sort_criteria.equals(getString(R.string.pref_sort_critera_favourite)))
+        {
+            // Test the basic content provider query
+            Cursor movieCursor = getActivity().getContentResolver().query(
+                    MovieContract.MovieEntry.CONTENT_URI,
+                    MOVIE_COLUMNS,
+                    null,
+                    null,
+                    null
+            );
+
+            if(movieCursor!=null) {
+                while (movieCursor.moveToNext()) {
+                    title = movieCursor.getString(COL_TITLE);
+                    release_date = movieCursor.getString(COL_RELEASE_DATE);
+                    poster_path = movieCursor.getString(COL_MOVIE_POSTER_URL);
+                    vote_avg = movieCursor.getString(COL_VOTE_AVG);
+                    plot_synopsis = movieCursor.getString(COL_PLOT_SYNOPSIS);
+                    movie_id = movieCursor.getInt(COL_MOVIE_ID);
+                    moviesData.add(new Movie(title, release_date, poster_path, vote_avg, plot_synopsis, movie_id));
+                }
+                moviesAdapter.setMoviesData(moviesData);
+            }
+        }
     }
 }
