@@ -25,7 +25,7 @@
         android:id="@+id/title"
         android:textColor="#ffffff"
         android:textStyle="bold"
-        android:background="#009973"
+        android:background="@color/colorGreen"
         android:layout_weight="0.20"
         android:gravity="center_vertical"/>
 
@@ -79,12 +79,12 @@
 
             <Button
                 style="?android:attr/buttonStyleSmall"
-                android:layout_width="115dp"
+                android:layout_width="100dp"
                 android:layout_height="0dp"
                 android:text="Mark As Favourite"
                 android:id="@+id/favouriteButton"
                 android:layout_weight="0.5"
-                android:background="#009973"/>
+                android:background="@color/colorGreen"/>
 
         </LinearLayout>
     </LinearLayout>

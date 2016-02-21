@@ -11,6 +11,7 @@
         android:layout_gravity="center"
         android:id="@+id/grid_view_movie_poster"
         android:adjustViewBounds="true"
+        android:paddingBottom="2dp"
         />
 
 </LinearLayout>

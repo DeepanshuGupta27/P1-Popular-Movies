@@ -15,7 +15,7 @@ import java.util.ArrayList;
 public class MovieReviewAdaptor extends ArrayAdapter<Review> {
     private Context mContext;
 
-    // references to our movie objects
+    // references to our movie review objects
     public ArrayList<Review> moviesReviewData;
 
     //Constructor
@@ -25,12 +25,12 @@ public class MovieReviewAdaptor extends ArrayAdapter<Review> {
         this.moviesReviewData = moviesReviewData;
     }
 
-    //return number of moviesTrailer
+    //return number of moviesReview
     public int getCount() {
         return moviesReviewData.size();
     }
 
-    //return movie at particular index
+    //return movie review at particular index
     public Review getItem(int position) {
         return moviesReviewData.get(position);
     }
@@ -39,7 +39,7 @@ public class MovieReviewAdaptor extends ArrayAdapter<Review> {
         return 0;
     }
 
-    //Updates movie data and notify grid view for update
+    //Updates movie review data and notify grid view for update
     public void setMoviesReviewData(ArrayList<Review> moviesReviewData)
     {
         this.moviesReviewData = moviesReviewData;
@@ -51,7 +51,7 @@ public class MovieReviewAdaptor extends ArrayAdapter<Review> {
         return this.moviesReviewData;
     }
 
-    // create a new ImageView for each item referenced by the Adapter
+    //Create View for each trailer
     public View getView(int position, View convertView, ViewGroup parent) {
         TextView review;
         TextView author;

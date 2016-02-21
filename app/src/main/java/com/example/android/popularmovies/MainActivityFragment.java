@@ -1,6 +1,5 @@
 package com.example.android.popularmovies;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
@@ -13,7 +12,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
 
 import com.example.android.popularmovies.data.MovieContract;
@@ -39,6 +37,10 @@ public class MainActivityFragment extends Fragment {
     }
 
     private MoviesPosterAdapter moviesAdapter = null;
+    private int gridViewPosition = GridView.INVALID_POSITION;
+    private final static String SELECTED_KEY = "selected_key";
+    private GridView gridview;
+    private SharedPreferences sortCriteriaPreference;
 
     private static final String[] MOVIE_COLUMNS = {
             MovieContract.MovieEntry.COLUMN_TITLE,
@@ -49,7 +51,7 @@ public class MainActivityFragment extends Fragment {
             MovieContract.MovieEntry.COLUMN_MOVIE_ID
     };
 
-    // These indices are tied to FORECAST_COLUMNS.  If FORECAST_COLUMNS changes, these
+    // These indices are tied to MOVIE_COLUMNS.  If MOVIE_COLUMNS changes, these
     // must change.
     private static final int COL_TITLE = 0;
     private static final int COL_RELEASE_DATE = 1;
@@ -61,23 +63,27 @@ public class MainActivityFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
-
         super.onCreate(savedInstanceState);
 
         //Adapter that will bind the data coming from the moviedb with movie poster grid view
         moviesAdapter = new MoviesPosterAdapter(getActivity(),new ArrayList<Movie>());
-        //Log.v("Main Activity Fragment", "On onCreate");
-        if(savedInstanceState==null || !savedInstanceState.containsKey("movies")) {
-        }
-        else{
-            moviesAdapter.moviesData = savedInstanceState.getParcelableArrayList("movies");
-        }
+
+        //Sort Criteria Preference Manager
+        sortCriteriaPreference = PreferenceManager.getDefaultSharedPreferences(getActivity());
+
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        //Log.v("Main Activity Frgament","On Bundle Save");
+
+        //Saving movies data that will be restored on device rotation
         outState.putParcelableArrayList("movies", moviesAdapter.getMoviesData());
+
+        //Saving gridview position that will be restored on device rotation
+        if(gridViewPosition!=GridView.INVALID_POSITION) {
+            outState.putInt(SELECTED_KEY, gridViewPosition);
+        }
+
         super.onSaveInstanceState(outState);
     }
 
@@ -86,30 +92,56 @@ public class MainActivityFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView =  inflater.inflate(R.layout.fragment_main, container, false);
 
-        //Log.v("Main Activity Fragment", "On onCreateView");
-        //movie poster grid view
-        GridView gridview = (GridView) rootView.findViewById(R.id.gridview);
+        //Get gridview
+        gridview = (GridView) rootView.findViewById(R.id.gridview);
+        gridview.setDrawSelectorOnTop(false);
+
+        //Set the adapter for this gridview
         gridview.setAdapter(moviesAdapter);
 
         //Open detail activity once poster is clicked
-        gridview.setOnItemClickListener(new OnItemClickListener() {
+        gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
-                Movie movie = (Movie) parent.getItemAtPosition(position);
-                Intent intent = new Intent(getContext(), DetailActivity.class);
-                intent.putExtra("title", movie.title);
-                intent.putExtra("poster_url", movie.movie_poster_url);
-                intent.putExtra("plot_synopsis", movie.plot_synopsis);
-                intent.putExtra("release_date", movie.releaseDate);
-                intent.putExtra("vote_average", movie.vote_average);
-                intent.putExtra("movie_id",movie.movie_id);
-                startActivity(intent);
+                updateDetailFragment(position);
+                gridViewPosition = position;
+                //gridview.setItemChecked(position,true);
             }
+
         });
+
 
         return rootView;
     }
 
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState)
+    {
+        super.onActivityCreated(savedInstanceState);
+
+        //Check if there is any saveInstance, if there is an instance restore it else fill the movie adapter
+        if(savedInstanceState==null || !savedInstanceState.containsKey("movies")) {
+            //get the sort criteria
+            String sort_criteria = sortCriteriaPreference.getString(getString(R.string.pref_sort_criteria_key), getString(R.string.pref_sort_critera_defaultvalue));
+
+            //get the data in movieAdapter based on sort criteria
+            showMoviePoster(sort_criteria);
+            Global.sortCriteria = sort_criteria;
+        }
+        else{
+            //Restore movie adapter
+            moviesAdapter.moviesData = savedInstanceState.getParcelableArrayList("movies");
+
+            if(savedInstanceState.containsKey(SELECTED_KEY)){
+                gridViewPosition = savedInstanceState.getInt(SELECTED_KEY,0);
+
+                //Scroll gridview to its actual position once rotation is done
+                gridview.smoothScrollToPosition(gridViewPosition);
+            }
+        }
+
+
+    }
     //Class for fetching movie data on worker thread
     private class FetchPopularMovies extends AsyncTask<String, Void, ArrayList<Movie>> {
 
@@ -122,6 +154,11 @@ public class MainActivityFragment extends Fragment {
             if (movieDetails != null) {
                 //this will set moviesData ArrayList and will notify grid view for the data change
                 moviesAdapter.setMoviesData(movieDetails);
+
+                if(movieDetails.size()>0 && getActivity().findViewById(R.id.movie_detail_container)!=null)
+                {
+                    updateDetailFragment(0);
+                }
             }
 
         }
@@ -258,14 +295,18 @@ public class MainActivityFragment extends Fragment {
     public void onStart()
     {
         super.onStart();
-        SharedPreferences sortCriteriaPreference = PreferenceManager.getDefaultSharedPreferences(getActivity());
+
+        //get sort criteria
         String sort_criteria = sortCriteriaPreference.getString(getString(R.string.pref_sort_criteria_key), getString(R.string.pref_sort_critera_defaultvalue));
         //Log.v("Global","Global "+Global.sortCriteria+" "+sort_criteria);
-        if(Global.sortCriteria.equals("") || !Global.sortCriteria.equals(sort_criteria)) {
+
+        //if sort criteria changed then update moviesAdapter and Detail Fragment
+        if(!Global.sortCriteria.equals(sort_criteria)) {
+
+            //set movies Adapter based on Sort Criteria
             showMoviePoster(sort_criteria);
             Global.sortCriteria = sort_criteria;
         }
-        // showMoviePoster(sort_criteria);
     }
 
 //    @Override
@@ -339,7 +380,39 @@ public class MainActivityFragment extends Fragment {
                     moviesData.add(new Movie(title, release_date, poster_path, vote_avg, plot_synopsis, movie_id));
                 }
                 moviesAdapter.setMoviesData(moviesData);
+
+                if(moviesData.size()>0 && getActivity().findViewById(R.id.movie_detail_container)!=null) {
+                    //update detail fragment
+                    updateDetailFragment(0);
+                }
             }
         }
+
+    }
+
+    private void updateDetailFragment(int position)
+    {
+        Movie movie = (Movie) gridview.getItemAtPosition(position);
+        if(movie!=null){
+            ((Callback)getActivity()).onItemSelected(movie.title,
+                    movie.movie_poster_url,
+                    movie.plot_synopsis,
+                    movie.releaseDate,
+                    movie.vote_average,
+                    movie.movie_id);
+        }
+    }
+
+
+    /**
+     * A callback interface that all activities containing this fragment must
+     * implement. This mechanism allows activities to be notified of item
+     * selections.
+     */
+    public interface Callback {
+        /**
+         * DetailFragmentCallback for when an item has been selected.
+         */
+        public void onItemSelected(String title,String poster_url,String plot_synopsis,String release_date,String vote_average,int movie_id);
     }
 }

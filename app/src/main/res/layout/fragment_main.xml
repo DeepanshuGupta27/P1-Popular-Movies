@@ -19,6 +19,8 @@
         android:verticalSpacing="2dp"
         android:horizontalSpacing="2dp"
         android:focusable="true"
+        android:choiceMode="singleChoice"
+        android:listSelector="@color/colorGreen"
         />
 
 </LinearLayout>

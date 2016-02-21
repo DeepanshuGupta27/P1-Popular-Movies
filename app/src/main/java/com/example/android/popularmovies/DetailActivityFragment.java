@@ -15,6 +15,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -22,7 +23,7 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.view.ViewGroup.LayoutParams;
+
 import com.example.android.popularmovies.data.MovieContract;
 import com.squareup.picasso.Picasso;
 
@@ -61,42 +62,33 @@ public class DetailActivityFragment extends Fragment {
         reviewlistView = (ListView)rootview.findViewById(R.id.listview_movieReviews);
         reviewlistView.setAdapter(reviewAdapter);
 
-        //get the intent sent from main activity
-        Intent intent = getActivity().getIntent();
-
         String poster_path = "",release_date = "",plot_synopsis = "",title = "",vote_avg = "";
         int movie_id = 0;
 
-        //pull out all the extra parameter sent with intent and populate required views.
-        if (intent != null && intent.hasExtra("title")) {
-            title = intent.getExtras().getString("title");
-            ((TextView) rootview.findViewById(R.id.title)).setText(title);
-        }
+        Bundle args = getArguments();
 
-        if (intent != null && intent.hasExtra("poster_url")) {
-            poster_path = intent.getExtras().getString("poster_url");
+        if(args!=null) {
+            title = args.getString("title");
+            ((TextView) rootview.findViewById(R.id.title)).setText(title);
+
+            poster_path = args.getString("poster_url");
             ImageView view = (ImageView) rootview.findViewById(R.id.movie_poster);
             Picasso.with(getActivity()).load(poster_path).into(view);
-        }
 
-        if (intent != null && intent.hasExtra("plot_synopsis")) {
-            plot_synopsis = intent.getExtras().getString("plot_synopsis");
+            plot_synopsis = args.getString("plot_synopsis");
             ((TextView) rootview.findViewById(R.id.plot_synopsis)).setText(plot_synopsis);
-        }
 
-        if (intent != null && intent.hasExtra("release_date")) {
-            release_date = intent.getExtras().getString("release_date");
+            release_date = args.getString("release_date");
             ((TextView) rootview.findViewById(R.id.release_date)).setText(release_date);
-        }
 
-        if (intent != null && intent.hasExtra("vote_average")) {
-            vote_avg  = intent.getExtras().getString("vote_average");
+            vote_avg = args.getString("vote_average");
             ((TextView) rootview.findViewById(R.id.vote_average)).setText(vote_avg);
+
+            movie_id = args.getInt("movie_id");
         }
 
-        if (intent != null && intent.hasExtra("movie_id")) {
-            movie_id  = intent.getExtras().getInt("movie_id");
-        }
+
+
         movieObj = new Movie(title, release_date, poster_path, vote_avg, plot_synopsis, movie_id);
 
         Button button= (Button) rootview.findViewById(R.id.favouriteButton);
@@ -126,7 +118,7 @@ public class DetailActivityFragment extends Fragment {
         @Override
         protected void onPostExecute(ArrayList<Trailer> movieTrailers) {
 
-            if (movieTrailers != null) {
+            if (movieTrailers != null && movieTrailers.size()>0) {
                 //this will set moviesData ArrayList and will notify grid view for the data change
                 youtube_url = movieTrailers.get(0).youtube_url;
                 setHasOptionsMenu(true);
@@ -306,10 +298,12 @@ public class DetailActivityFragment extends Fragment {
     public void onStart()
     {
         super.onStart();
-        String trailerBaseURL = createTrailerUri(movieObj.movie_id);
-        String reviewBaseURL = createReviewUri(movieObj.movie_id);
-        new FetchMoviesTrailer().execute(trailerBaseURL);
-        new FetchMovieReviews().execute(reviewBaseURL);
+        if(movieObj.movie_id!=0) {
+            String trailerBaseURL = createTrailerUri(movieObj.movie_id);
+            String reviewBaseURL = createReviewUri(movieObj.movie_id);
+            new FetchMoviesTrailer().execute(trailerBaseURL);
+            new FetchMovieReviews().execute(reviewBaseURL);
+        }
     }
 
     private Intent createShareForecastIntent()

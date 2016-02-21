@@ -6,14 +6,22 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MainActivityFragment.Callback {
+
+    private static final String DETAILFRAGMENT_TAG = "DFTAG";
+    private boolean mTwoPane = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //Log.v("Main Activity","On Create");
 
+        if(findViewById(R.id.movie_detail_container)!=null){
+            mTwoPane = true;
+        }
+        else{
+            mTwoPane = false;
+        }
     }
 
     @Override
@@ -41,6 +49,51 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onItemSelected(String title, String poster_url, String plot_synopsis, String release_date, String vote_average, int movie_id) {
+
+        //if its a 2pane layout then create detail fragment in main activity else start detail activity using intent
+        if(mTwoPane==true){
+
+            Bundle args = new Bundle();
+            args.putString("title", title);
+            args.putString("poster_url", poster_url);
+            args.putString("plot_synopsis", plot_synopsis);
+            args.putString("release_date", release_date);
+            args.putString("vote_average", vote_average);
+            args.putInt("movie_id", movie_id);
+
+
+            DetailActivityFragment fragment = new DetailActivityFragment();
+            fragment.setArguments(args);
+
+            //(Add)replace detail fragment if it (does not)exist
+            if(getSupportFragmentManager().findFragmentByTag(DETAILFRAGMENT_TAG)==null)
+            {
+                getSupportFragmentManager().beginTransaction()
+                        .add(R.id.movie_detail_container,fragment,DETAILFRAGMENT_TAG)
+                        .commit();
+            }
+            else {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.movie_detail_container, fragment, DETAILFRAGMENT_TAG)
+                        .commit();
+            }
+        }
+        else{
+
+            Intent intent = new Intent(this, DetailActivity.class);
+            intent.putExtra("title", title);
+            intent.putExtra("poster_url", poster_url);
+            intent.putExtra("plot_synopsis", plot_synopsis);
+            intent.putExtra("release_date", release_date);
+            intent.putExtra("vote_average", vote_average);
+            intent.putExtra("movie_id",movie_id);
+            startActivity(intent);
+        }
+
+    }
+//
 //    @Override
 //    public void onStart()
 //    {

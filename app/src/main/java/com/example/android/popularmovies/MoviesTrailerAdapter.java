@@ -15,7 +15,7 @@ import java.util.ArrayList;
 public class MoviesTrailerAdapter extends ArrayAdapter<Trailer> {
     private Context mContext;
 
-    // references to our movie objects
+    // references to our movie trailer objects
     public ArrayList<Trailer> moviesTrailerData;
 
     //Constructor
@@ -30,7 +30,7 @@ public class MoviesTrailerAdapter extends ArrayAdapter<Trailer> {
         return moviesTrailerData.size();
     }
 
-    //return movie at particular index
+    //return movie trailer at particular index
     public Trailer getItem(int position) {
         return moviesTrailerData.get(position);
     }
@@ -39,7 +39,7 @@ public class MoviesTrailerAdapter extends ArrayAdapter<Trailer> {
         return 0;
     }
 
-    //Updates movie data and notify grid view for update
+    //Updates movie trailer data and notify grid view for update
     public void setMoviesTrailerData(ArrayList<Trailer> moviesTrailerData)
     {
         this.moviesTrailerData = moviesTrailerData;
@@ -51,7 +51,7 @@ public class MoviesTrailerAdapter extends ArrayAdapter<Trailer> {
         return this.moviesTrailerData;
     }
 
-    // create a new ImageView for each item referenced by the Adapter
+    //Create View for each trailer
     public View getView(int position, View convertView, ViewGroup parent) {
         TextView textview;
         if (convertView == null) {
